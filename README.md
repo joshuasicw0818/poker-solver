@@ -60,3 +60,7 @@ streamlit run streamlit_app.py
 ```
 
 Use the sidebar to pick the training mode, review recent hand history and view your accuracy in real time.
+
+The sidebar also includes a **Custom Spot** section where you can enter your own
+board and hole cards along with action frequencies. Press *Use Custom Spot* to
+replace the current hand with your custom scenario.
