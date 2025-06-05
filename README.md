@@ -24,6 +24,12 @@ run_trainer_session(sample_spots)
 PY
 ```
 
+Alternatively run the provided ``main.py`` script:
+
+```bash
+python3 main.py
+```
+
 During the session you'll be prompted for an action (`fold`, `call` or `raise`) for each spot. Statistics are printed after each hand and the program continues until you answer `n` when asked to continue.
 
 ### Trainer options
