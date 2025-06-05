@@ -1,6 +1,6 @@
-from dataclasses import dataclass
-from typing import List, Tuple, Dict
+from typing import List, Dict
 import random
+from poker_spot import PokerSpot
 
 
 def get_rng_action(strategy_dict: Dict[str, float]) -> str:
@@ -18,23 +18,6 @@ def get_rng_action(strategy_dict: Dict[str, float]) -> str:
     # Fallback in case of rounding errors
     return list(strategy_dict.keys())[-1]
 
-@dataclass
-class PokerSpot:
-    """Represents a single training scenario."""
-    hero_position: str
-    villain_position: str
-    board: str
-    recommended_action: str
-    ev_loss_if_wrong: float
-
-def evaluate_action(spot: PokerSpot, action: str, correct_action: str = None) -> Tuple[bool, float]:
-    """Return whether ``action`` matches ``correct_action`` and its EV loss."""
-    if correct_action is None:
-        correct_action = spot.recommended_action
-
-    correct = action.strip().lower() == correct_action.lower()
-    ev_loss = 0.0 if correct else spot.ev_loss_if_wrong
-    return correct, ev_loss
 
 def run_trainer_session(spots: List[PokerSpot], learning_mode: bool = False,
                         rng_training: bool = False) -> None:
@@ -56,17 +39,19 @@ def run_trainer_session(spots: List[PokerSpot], learning_mode: bool = False,
     while True:
         spot = random.choice(spots)
         print("--- New Spot ---")
-        print(f"Hero Position: {spot.hero_position}")
-        print(f"Villain Position: {spot.villain_position}")
-        print(f"Board: {spot.board}")
+        print(f"Positions: {spot.positions}")
+        print(f"Stacks: {spot.stack_sizes}")
+        print(f"Board: {' '.join(spot.board_cards)}")
+        print(f"Hole Cards: {spot.hole_cards}")
 
         if rng_training and getattr(spot, "gto_strategy", None):
             spot_correct_action = get_rng_action(spot.gto_strategy)
         else:
-            spot_correct_action = spot.recommended_action
+            spot_correct_action = spot.best_action()
 
-        action = input("Your action: ")
-        correct, ev_loss = evaluate_action(spot, action, spot_correct_action)
+        action = input("Your action: ").strip().lower()
+        _, ev_loss, _ = spot.evaluate_action(action)
+        correct = spot_correct_action is not None and action == spot_correct_action.lower()
         stats['total'] += 1
         if correct:
             stats['correct'] += 1
