@@ -21,6 +21,20 @@ class PokerSpot:
         self.gto_strategy = gto_strategy
         self.action_evs = action_evs or {}
 
+    def best_action(self):
+        """Return the recommended action based on EVs or GTO frequencies."""
+        if self.action_evs:
+            max_ev = max(self.action_evs.values())
+            for act, ev in self.action_evs.items():
+                if ev == max_ev:
+                    return act
+        if self.gto_strategy:
+            max_freq = max(self.gto_strategy.values())
+            for act, freq in self.gto_strategy.items():
+                if freq == max_freq:
+                    return act
+        return None
+
     def evaluate_action(self, player_action):
         """Evaluate whether the given action matches the GTO strategy.
 
