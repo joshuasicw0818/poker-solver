@@ -48,3 +48,15 @@ run_trainer_session(sample_spots, learning_mode=True, rng_training=True)
 ## Creating custom spots
 
 To practice with your own scenarios, create `PokerSpot` instances and pass them in a list to `run_trainer_session`. Refer to `sample_spots.py` for example spot definitions.
+
+## Streamlit interface
+
+A basic Streamlit app is provided in `streamlit_app.py`. It offers the same training functionality in a web UI.
+
+Run it with:
+
+```bash
+streamlit run streamlit_app.py
+```
+
+Use the sidebar to pick the training mode, review recent hand history and view your accuracy in real time.
