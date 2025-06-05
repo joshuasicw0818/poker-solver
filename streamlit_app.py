@@ -1,9 +1,35 @@
 import random
 import streamlit as st
 from typing import List, Dict
-
 from sample_spots import sample_spots
 from poker_spot import PokerSpot
+
+SUIT_SYMBOLS = {
+    "h": "♥",
+    "d": "♦",
+    "c": "♣",
+    "s": "♠",
+}
+
+
+def format_card(card: str) -> str:
+    """Return a human friendly representation like 'A♥'."""
+    if len(card) < 2:
+        return card
+    rank, suit = card[:-1], card[-1].lower()
+    return f"{rank}{SUIT_SYMBOLS.get(suit, suit)}"
+
+
+def format_cards(cards: List[str]) -> str:
+    return " ".join(format_card(c) for c in cards)
+
+
+def format_hole_cards(hole_cards: Dict[str, List[str]]) -> str:
+    parts = []
+    for player, cards in hole_cards.items():
+        parts.append(f"{player}: {format_cards(cards)}")
+    return " | ".join(parts)
+
 
 
 def init_session():
@@ -56,7 +82,7 @@ mode = st.sidebar.selectbox(
 st.sidebar.header("Hand History")
 for entry in reversed(st.session_state.history[-20:]):
     status = "✅" if entry['correct'] else "❌"
-    board = ' '.join(entry['board'])
+    board = format_cards(entry['board'])
     st.sidebar.write(f"{status} {board} - chose {entry['action']}")
 
 spot: PokerSpot = st.session_state.spot
@@ -64,8 +90,8 @@ spot: PokerSpot = st.session_state.spot
 st.subheader("Current Spot")
 st.write(f"Positions: {spot.positions}")
 st.write(f"Stacks: {spot.stack_sizes}")
-st.write(f"Board: {' '.join(spot.board_cards)}")
-st.write(f"Hole Cards: {spot.hole_cards}")
+st.markdown(f"**Board:** {format_cards(spot.board_cards)}")
+st.markdown(f"**Hole Cards:** {format_hole_cards(spot.hole_cards)}")
 
 cols = st.columns(3)
 if cols[0].button("Fold"):
@@ -81,4 +107,8 @@ if 'feedback' in st.session_state:
 # Stats
 stats = st.session_state.stats
 accuracy = (stats['correct'] / stats['total']) * 100 if stats['total'] else 0.0
-st.write(f"Hands: {stats['total']}  |  Accuracy: {accuracy:.1f}%  |  EV Loss: {stats['ev_loss']:.2f}")
+
+stat_cols = st.columns(3)
+stat_cols[0].metric("Hands", stats['total'])
+stat_cols[1].metric("Accuracy", f"{accuracy:.1f}%")
+stat_cols[2].metric("EV Loss", f"{stats['ev_loss']:.2f}")
