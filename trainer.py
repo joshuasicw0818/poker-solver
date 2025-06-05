@@ -3,6 +3,36 @@ import random
 from poker_spot import PokerSpot
 
 
+def format_card(card: str) -> str:
+    """Return a card string with a Unicode suit symbol."""
+    suits = {
+        "h": "\u2665",  # hearts
+        "d": "\u2666",  # diamonds
+        "c": "\u2663",  # clubs
+        "s": "\u2660",  # spades
+    }
+    rank, suit = card[0], card[1].lower()
+    return f"{rank}{suits.get(suit, suit)}"
+
+
+def format_cards(cards: List[str]) -> str:
+    """Format a list of card strings nicely for display."""
+    return " ".join(format_card(c) for c in cards)
+
+
+def display_spot(spot: PokerSpot) -> None:
+    """Print a human friendly representation of a :class:`PokerSpot`."""
+    print("--- New Spot ---")
+    print(f"Positions: {spot.positions}")
+    print("Stacks:")
+    for player, stack in spot.stack_sizes.items():
+        print(f"  {player}: {stack}")
+    print(f"Board: {format_cards(spot.board_cards)}")
+    print("Hole Cards:")
+    for player, cards in spot.hole_cards.items():
+        print(f"  {player}: {format_cards(cards)}")
+
+
 def get_rng_action(strategy_dict: Dict[str, float]) -> str:
     """Return a random action weighted by the provided GTO frequencies."""
     if not strategy_dict:
@@ -38,11 +68,7 @@ def run_trainer_session(spots: List[PokerSpot], learning_mode: bool = False,
 
     while True:
         spot = random.choice(spots)
-        print("--- New Spot ---")
-        print(f"Positions: {spot.positions}")
-        print(f"Stacks: {spot.stack_sizes}")
-        print(f"Board: {' '.join(spot.board_cards)}")
-        print(f"Hole Cards: {spot.hole_cards}")
+        display_spot(spot)
 
         if rng_training and getattr(spot, "gto_strategy", None):
             spot_correct_action = get_rng_action(spot.gto_strategy)
