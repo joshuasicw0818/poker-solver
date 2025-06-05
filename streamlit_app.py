@@ -31,6 +31,11 @@ def format_hole_cards(hole_cards: Dict[str, List[str]]) -> str:
     return " | ".join(parts)
 
 
+def parse_cards(text: str) -> List[str]:
+    """Parse a space or comma separated card string into a list."""
+    return [c.strip() for c in text.replace(',', ' ').split() if c.strip()]
+
+
 
 def init_session():
     if 'spot' not in st.session_state:
@@ -85,6 +90,24 @@ for entry in reversed(st.session_state.history[-20:]):
     status = "✅" if entry['correct'] else "❌"
     board = format_cards(entry['board'])
     st.sidebar.write(f"{status} {board} - chose {entry['action']}")
+
+# Custom spot inputs
+with st.sidebar.expander("Custom Spot"):
+    pos_input = st.text_input("Positions", "BTN vs BB", key="custom_pos")
+    board_input = st.text_input("Board", "Ah Kd Ts", key="custom_board")
+    btn_input = st.text_input("BTN Cards", "Ad Kd", key="custom_btn")
+    bb_input = st.text_input("BB Cards", "Qs Js", key="custom_bb")
+    fold_freq = st.number_input("Fold freq", min_value=0.0, max_value=1.0, value=0.1, key="custom_fold")
+    call_freq = st.number_input("Call freq", min_value=0.0, max_value=1.0, value=0.5, key="custom_call")
+    raise_freq = st.number_input("Raise freq", min_value=0.0, max_value=1.0, value=0.4, key="custom_raise")
+    if st.button("Use Custom Spot"):
+        st.session_state.spot = PokerSpot(
+            positions=pos_input,
+            stack_sizes={"BTN": 50, "BB": 50},
+            board_cards=parse_cards(board_input),
+            hole_cards={"BTN": parse_cards(btn_input), "BB": parse_cards(bb_input)},
+            gto_strategy={"fold": fold_freq, "call": call_freq, "raise": raise_freq},
+        )
 
 spot: PokerSpot = st.session_state.spot
 
