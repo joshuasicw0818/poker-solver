@@ -17,8 +17,16 @@ def evaluate_action(spot: PokerSpot, action: str) -> Tuple[bool, float]:
     ev_loss = 0.0 if correct else spot.ev_loss_if_wrong
     return correct, ev_loss
 
-def run_trainer_session(spots: List[PokerSpot]) -> None:
-    """Run an interactive trainer session over a list of PokerSpot objects."""
+def run_trainer_session(spots: List[PokerSpot], learning_mode: bool = False) -> None:
+    """Run an interactive trainer session over a list of PokerSpot objects.
+
+    Args:
+        spots: A list of :class:`PokerSpot` objects to drill through.
+        learning_mode: If ``True`` the session will automatically pause after
+            an incorrect action and display the spot's GTO strategy (if
+            available). In normal mode the user will be prompted whether they
+            want to review the strategy.
+    """
     stats = {
         'total': 0,
         'correct': 0,
@@ -40,6 +48,24 @@ def run_trainer_session(spots: List[PokerSpot]) -> None:
         else:
             stats['ev_loss'] += ev_loss
             print(f"Incorrect. Recommended action: {spot.recommended_action}")
+
+            # Build a string representation of the spot's GTO strategy if
+            # available. Fall back to simply echoing the recommended action.
+            strategy = getattr(spot, "gto_strategy", None)
+            if strategy:
+                strategy_lines = [f"{act}: {freq:.2f}" for act, freq in strategy.items()]
+                gto_msg = "GTO Strategy:\n" + "\n".join(strategy_lines)
+            else:
+                gto_msg = f"Recommended action: {spot.recommended_action}"
+
+            if learning_mode:
+                print(gto_msg)
+                input("Press Enter to continue...")
+            else:
+                review = input("Review GTO strategy? (y/n): ").strip().lower()
+                if review == 'y':
+                    print(gto_msg)
+                    input("Press Enter to continue...")
         accuracy = (stats['correct'] / stats['total']) * 100
         print(f"Session stats -> Hands: {stats['total']}, Accuracy: {accuracy:.1f}%, EV Loss: {stats['ev_loss']:.2f}")
         cont = input("Continue? (y/n): ").strip().lower()
