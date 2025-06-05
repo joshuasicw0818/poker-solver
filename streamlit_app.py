@@ -49,12 +49,13 @@ def new_spot() -> PokerSpot:
 def evaluate_action(action: str):
     spot: PokerSpot = st.session_state.spot
     correct_action = spot.best_action()
-    correct, ev_loss, _ = spot.evaluate_action(action)
+    _, ev_loss, _ = spot.evaluate_action(action)
+    correct = action == correct_action
 
     st.session_state.stats['total'] += 1
     if correct:
         st.session_state.stats['correct'] += 1
-        result_msg = f"Correct! {action} is in the strategy."
+        result_msg = f"Correct! {action} is the recommended action."
     else:
         st.session_state.stats['ev_loss'] += ev_loss
         result_msg = f"Incorrect. Recommended: {correct_action}"
