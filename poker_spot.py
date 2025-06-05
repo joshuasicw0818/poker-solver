@@ -1,7 +1,8 @@
 class PokerSpot:
     """Represents a decision point in a poker hand."""
 
-    def __init__(self, positions, stack_sizes, board_cards, hole_cards, gto_strategy):
+    def __init__(self, positions, stack_sizes, board_cards, hole_cards,
+                 gto_strategy, action_evs=None):
         """Initialize the spot.
 
         Args:
@@ -10,6 +11,7 @@ class PokerSpot:
             board_cards (list[str]): Community cards on the board.
             hole_cards (dict): Mapping of player to their hole cards.
             gto_strategy (dict): Mapping of action to frequency (0-1).
+            action_evs (dict, optional): Expected value for each action.
         """
         self.positions = positions
         self.stack_sizes = stack_sizes
@@ -17,6 +19,7 @@ class PokerSpot:
         self.hole_cards = hole_cards
         self.actions = ["fold", "call", "raise"]
         self.gto_strategy = gto_strategy
+        self.action_evs = action_evs or {}
 
     def evaluate_action(self, player_action):
         """Evaluate whether the given action matches the GTO strategy.
@@ -37,8 +40,14 @@ class PokerSpot:
         else:
             freq = self.gto_strategy[player_action]
 
-        best_freq = max(self.gto_strategy.values()) if self.gto_strategy else 0.0
-        ev_loss = max(0.0, best_freq - freq)
+        if self.action_evs:
+            action_ev = self.action_evs.get(player_action, float("-inf"))
+            best_ev = max(self.action_evs.values())
+            ev_loss = max(0.0, best_ev - action_ev)
+        else:
+            best_freq = max(self.gto_strategy.values()) if self.gto_strategy else 0.0
+            ev_loss = max(0.0, best_freq - freq)
+
         is_correct = freq > 0.0
 
         return is_correct, ev_loss, self.gto_strategy
